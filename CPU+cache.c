@@ -37,7 +37,7 @@ int main(int argc, char **argv)
   struct trace_item MEM_WB;
   
   int trace_view_on = 0, added = 0, no_print = 0;
-  int stop = -1,  end = 0, taken = 0, branch_cycle = 0; 
+  int stop = -1,  end = 0, branch_cycle = 0; 
   unsigned int squashed[3];
   int branch_predictor = 0;
 
@@ -45,7 +45,6 @@ int main(int argc, char **argv)
 
   if (argc == 2) {
     //Assume trace = 0
-    
     
   }
   else if (argc == 3) trace_view_on = atoi(argv[2]);
@@ -80,17 +79,7 @@ int main(int argc, char **argv)
 
   //read config file
   fscanf(config_fd, "%u\n%u\n%u\n%u\n%u\n%u\n%u\n", &I_size, &I_assoc, &I_bsize, &D_size, &D_assoc, &D_bsize, &mem_latency);
-  fgetc(config_fd);
-  fgetc(config_fd);
-  fgetc(config_fd);
-
-  printf("I size %u\n", I_size);
-  printf("I assoc %u\n", I_assoc);
-  printf("I bsize %u\n", I_bsize);
-  printf("D size %u\n", D_size);
-  printf("D assoc %u\n", D_assoc);
-  printf("D bsize %u\n", D_bsize);
-  printf("MEM latency %u\n", mem_latency);
+  
   fclose(config_fd);
   
   //Create caches
@@ -147,28 +136,17 @@ int main(int argc, char **argv)
       	break;
     }
     else{           
-		struct trace_item temp1, temp2;
 		no_print = 0;
-		//Copy first two buffers into temps
-		temp1 = IF_ID;
-		temp2 = ID_EX;
-		//Bring new instruction into IF_ID buffer
+		
+		//Propagate in reverse for simplicity
+		*tr_entry = MEM_WB;
+		MEM_WB = EX_MEM;
+		EX_MEM = ID_EX;
+		ID_EX = IF_ID;
 		if (fetch_entry != 0 || size) //(size)
 		{
 			IF_ID = *fetch_entry;
 		}
-		
-		//Propagate the old instructions to the next stage i.e. fetch_entry => IF_ID => ID_EX => EX_MEM => MEM_WB => tr_entry
-		ID_EX = temp1;
-		temp1 = EX_MEM;
-
-		EX_MEM = temp2;
-		
-    		temp2 = MEM_WB;
-    	
-		MEM_WB = temp1;
-		
-		*tr_entry = temp2;
 		
 		//Print Current Cycle instructions
 		//printf("---------Cycle:  %d---------\n", cycle_number);
@@ -189,7 +167,7 @@ int main(int argc, char **argv)
 	int j;
       	for(j = 0 ; j < 3 ; j++)
       	{
-      		if(squashed[j] == tr_entry->PC && cycle_number >= 5 && !end)
+      		if(squashed[j] == tr_entry->PC && cycle_number >= 5 && !end) //DEBUG ugly condition, consider commenting
       		{
       			if(trace_view_on)
       			{
@@ -228,10 +206,14 @@ int main(int argc, char **argv)
         case ti_LOAD:
           printf("[cycle %d] LOAD:",cycle_number) ;      
           printf(" (PC: %x)(sReg_a: %d)(dReg: %d)(addr: %x)\n", tr_entry->PC, tr_entry->sReg_a, tr_entry->dReg, tr_entry->Addr);
+          cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 0);
+		  // update D_read_access and D_read_misses
           break;
         case ti_STORE:
           printf("[cycle %d] STORE:",cycle_number) ;      
           printf(" (PC: %x)(sReg_a: %d)(sReg_b: %d)(addr: %x)\n", tr_entry->PC, tr_entry->sReg_a, tr_entry->sReg_b, tr_entry->Addr);
+		  cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 1);
+		  // update D_write_access and D_write_misses          
           break;
         case ti_BRANCH:
           printf("[cycle %d] BRANCH:",cycle_number) ;
