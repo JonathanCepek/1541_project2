@@ -66,7 +66,11 @@ int main(int argc, char **argv)
     exit(0);
   }
   
+  trace_init();
+  
   //read config file
+  fprintf(stdout, "\n ** opening file cache_config.txt\n");
+
   config_fd = fopen("cache_config.txt", "r");
   
   if (!config_fd) {
@@ -75,16 +79,20 @@ int main(int argc, char **argv)
   }
 
   //read config file
-  fscanf(config_fd, "%u\n", &I_size);
-  fscanf(config_fd, "%u\n", &I_assoc);
-  fscanf(config_fd, "%u\n", &I_bsize);
-  fscanf(config_fd, "%u\n", &D_size);
-  fscanf(config_fd, "%u\n", &D_assoc);
-  fscanf(config_fd, "%u\n", &D_bsize);
-  fscanf(config_fd, "%u", &mem_latency);  
+  fscanf(config_fd, "%u\n%u\n%u\n%u\n%u\n%u\n%u\n", &I_size, &I_assoc, &I_bsize, &D_size, &D_assoc, &D_bsize, &mem_latency);
+  fgetc(config_fd);
+  fgetc(config_fd);
+  fgetc(config_fd);
+
+  printf("I size %u\n", I_size);
+  printf("I assoc %u\n", I_assoc);
+  printf("I bsize %u\n", I_bsize);
+  printf("D size %u\n", D_size);
+  printf("D assoc %u\n", D_assoc);
+  printf("D bsize %u\n", D_bsize);
+  printf("MEM latency %u\n", mem_latency);
   fclose(config_fd);
   
-  trace_init();
   //Create caches
   struct cache_t *I_cache, *D_cache;
   I_cache = cache_create(I_size, I_bsize, I_assoc, mem_latency); 
@@ -116,7 +124,8 @@ int main(int argc, char **argv)
 			if((id_pc - b_pc) != 4)
 			{
 				//branch taken, squash first two buffers
-				for(int i = 0 ; i < 3 ; i++)
+				int i;
+				for(i = 0 ; i < 3 ; i++)
 				{
 					if(squashed[i] == 0)
 					{
@@ -130,7 +139,7 @@ int main(int argc, char **argv)
     	size = trace_get_item(&fetch_entry);
    	}
    
-    if (cycle_number == stop) {       /* no more instructions (trace_items) to simulate */
+    if (cycle_number >= stop) {       /* no more instructions (trace_items) to simulate */
         printf("+ Simulation terminates at cycle : %u\n", cycle_number);
         printf("I-cache accesses %u and misses %u\n", I_accesses, I_misses);
       	printf("D-cache Read accesses %u and misses %u\n", D_read_accesses, D_read_misses);
@@ -155,8 +164,7 @@ int main(int argc, char **argv)
 
 		EX_MEM = temp2;
 		
-    	//*tr_entry = MEM_WB; //WTF
-    	temp2 = MEM_WB;
+    		temp2 = MEM_WB;
     	
 		MEM_WB = temp1;
 		
@@ -178,8 +186,8 @@ int main(int argc, char **argv)
 		}
 			
 		cycle_number++;	
-		      	
-      	for(int j = 0 ; j < 3 ; j++)
+	int j;
+      	for(j = 0 ; j < 3 ; j++)
       	{
       		if(squashed[j] == tr_entry->PC && cycle_number >= 5 && !end)
       		{
