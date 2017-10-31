@@ -1,7 +1,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 
 struct cache_blk_t 
 { /* note that no actual data will be stored in the cache */
@@ -24,6 +23,25 @@ struct cache_t
 };
 
 static FILE *config_fd;
+
+int log_2(int temp)
+{
+	int j;
+	for (j = 1; j <= 32; j++)
+	{
+		temp = temp >> 1;
+		if (temp == 1)
+		{
+			return j;
+		}
+		else if (temp == 0)
+		{
+			j = 0;
+			break;
+		}
+	}
+	return 0;
+}
 
 struct cache_t * cache_create(int size, int blocksize, int assoc, int mem_latency)
 {
@@ -65,10 +83,11 @@ int cache_access(struct cache_t *cp, unsigned long address, int access_type)
   // The LRU field of the blocks in the set accessed should also be updated.
 	
   	unsigned int offset_n, index_n, tag_n, offset, index, tag;
-  	int i, t1, t2;
-  	printf("address: %lu\n", address);
-  	offset_n = log(cp->blocksize)/log(2);
-  	index_n = log(cp->nsets)/log(2);
+  	int i, t1, t2, allocated = 0, maxIndex = -1, currValue;
+  	unsigned maxValue = 0;
+  	//printf("address: %lu\n", address);
+  	offset_n = log_2(cp->blocksize)/log_2(2);
+  	index_n = log_2(cp->nsets)/log_2(2);
   	tag_n = 32 - index_n - offset_n;
 	
 	/*printf("offset_n: %d\n", offset_n);
@@ -78,26 +97,65 @@ int cache_access(struct cache_t *cp, unsigned long address, int access_type)
   	//break up instruction into necessary bits
   	tag = address >> (32-tag_n);
   	offset = address << (32-offset_n);
-  	//printf("offset1: %d\n", offset);
   	offset = offset >> (32-offset_n);
-  	//printf("offset2: %d\n", offset);
   	
   	index = address << (32 - offset_n - index_n);
   	index = index >> (32 - index_n);
   	
-	printf("\n");
+	/*printf("\n");
   	printf("address %lu\n", address);
   	printf("tag     %d\n", tag);
   	printf("offset  %d\n", offset);
-  	printf("index  %d\n", index);
+  	printf("index  %d\n", index);*/
 
 
 	struct cache_blk_t * check = cp->blocks[index%cp->nsets]; //mod to find the set index
 	for (i = 0; i < cp->assoc ; i++)
 	{
-		
+		if(check[i].valid == '1')
+		{
+			if (check[i].tag == tag)
+			{
+				//tag found
+				//HIT
+				allocated = 1;
+				check[i].dirty = 1;
+				currValue = 0;
+			}
+			currValue = check[i].LRU;
+			if(currValue > maxValue)
+			{
+				maxValue = currValue;
+				maxIndex = i;
+			}
+			check[i].LRU = currValue + 1;
+		}
+		else{
+			//always allocated
+			check[i].tag = tag;
+			check[i].valid = 1;
+			check[i].dirty = 0;
+			check[i].LRU = 1;
+			allocated = 1;
+			maxIndex = i;
+			maxValue = 4294967295;
+			return cp->mem_latency;
+		}
 	}
 
-	return(cp->mem_latency);
-}
+	if(!allocated)
+	{
+		check[maxIndex].LRU = 1;
+		check[maxIndex].tag = tag;
+		check[maxIndex].valid = 1;
+		if(check[maxIndex].dirty) {
+			check[maxIndex].dirty = 0;
+			return 2*cp->mem_latency;
+		}
+		else
+			return cp->mem_latency;
+	}
 
+	return 0
+	;
+}

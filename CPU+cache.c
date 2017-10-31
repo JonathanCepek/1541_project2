@@ -185,11 +185,11 @@ int main(int argc, char **argv)
       		}
       	}	
     }  
-    
-    //DEBUG +cache	
+    int temp = cycle_number;
     cycle_number = cycle_number + cache_access(I_cache, tr_entry->PC, 0); /* simulate instruction fetch */
 	// update I_access and I_misses
-
+	I_accesses++;
+	if(cycle_number > temp) I_misses++;
     if (trace_view_on && !no_print && cycle_number >= 5) {/* print the executed instruction if trace_view_on=1 and don't print the first cycle's initial value*/
       switch(tr_entry->type) {
         case ti_NOP:
@@ -206,14 +206,20 @@ int main(int argc, char **argv)
         case ti_LOAD:
           printf("[cycle %d] LOAD:",cycle_number) ;      
           printf(" (PC: %x)(sReg_a: %d)(dReg: %d)(addr: %x)\n", tr_entry->PC, tr_entry->sReg_a, tr_entry->dReg, tr_entry->Addr);
+          temp = cycle_number;
           cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 0);
 		  // update D_read_access and D_read_misses
+		  D_read_accesses++;
+		  if(cycle_number > temp) I_misses++;
           break;
         case ti_STORE:
           printf("[cycle %d] STORE:",cycle_number) ;      
           printf(" (PC: %x)(sReg_a: %d)(sReg_b: %d)(addr: %x)\n", tr_entry->PC, tr_entry->sReg_a, tr_entry->sReg_b, tr_entry->Addr);
+          temp = cycle_number;
 		  cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 1);
-		  // update D_write_access and D_write_misses          
+		  // update D_write_access and D_write_misses 
+		  D_write_accesses++;  
+		  if(cycle_number > temp) I_misses++;       
           break;
         case ti_BRANCH:
           printf("[cycle %d] BRANCH:",cycle_number) ;
@@ -239,3 +245,4 @@ int main(int argc, char **argv)
 
   exit(0);
 }
+
