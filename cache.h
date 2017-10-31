@@ -65,28 +65,31 @@ int cache_access(struct cache_t *cp, unsigned long address, int access_type)
   // The LRU field of the blocks in the set accessed should also be updated.
 	
   	unsigned int offset_n, index_n, tag_n, offset, index, tag;
-  	char t1[32] = {0};
-  	char t2[32] = {0};
-  	int i, t1_n, t2_n;
+  	int i, t1, t2;
   	printf("address: %lu\n", address);
   	offset_n = log(cp->blocksize)/log(2);
-  	t1_n = offset_n;
   	index_n = log(cp->nsets)/log(2);
-  	t2_n = index_n;
   	tag_n = 32 - index_n - offset_n;
-	printf("tag_n: %d\n", tag_n);
+	
+	/*printf("offset_n: %d\n", offset_n);
+    printf("index_n: %d\n", index_n);
+	printf("tag_n: %d\n", tag_n);*/
 
   	//break up instruction into necessary bits
   	tag = address >> (32-tag_n);
   	offset = address << (32-offset_n);
+  	//printf("offset1: %d\n", offset);
+  	offset = offset >> (32-offset_n);
+  	//printf("offset2: %d\n", offset);
   	
-	//break up address
+  	index = address << (32 - offset_n - index_n);
+  	index = index >> (32 - index_n);
   	
-	/*printf("\n");
+	printf("\n");
   	printf("address %lu\n", address);
   	printf("tag     %d\n", tag);
   	printf("offset  %d\n", offset);
-  	printf("index  %d\n", index);*/
+  	printf("index  %d\n", index);
 
 
 	struct cache_blk_t * check = cp->blocks[index%cp->nsets]; //mod to find the set index
