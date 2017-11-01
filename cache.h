@@ -112,17 +112,17 @@ int cache_access(struct cache_t *cp, unsigned long address, int access_type)
 	struct cache_blk_t * check = cp->blocks[index%cp->nsets]; //mod to find the set index
 	for (i = 0; i < cp->assoc ; i++)
 	{
-		if(check[i].valid == '1')
+		if(check[i].valid == 1)
 		{
+			currValue = check[i].LRU;
 			if (check[i].tag == tag)
 			{
 				//tag found
-				//HIT
+				if(access_type == 1) printf("HIT\n");
 				allocated = 1;
 				check[i].dirty = 1;
 				currValue = 0;
 			}
-			currValue = check[i].LRU;
 			if(currValue > maxValue)
 			{
 				maxValue = currValue;
@@ -132,6 +132,7 @@ int cache_access(struct cache_t *cp, unsigned long address, int access_type)
 		}
 		else{
 			//always allocated
+			if(access_type == 1) printf("INVALID\n");
 			check[i].tag = tag;
 			check[i].valid = 1;
 			check[i].dirty = 0;
@@ -149,11 +150,14 @@ int cache_access(struct cache_t *cp, unsigned long address, int access_type)
 		check[maxIndex].tag = tag;
 		check[maxIndex].valid = 1;
 		if(check[maxIndex].dirty) {
+			if(access_type == 1) printf("dirty\n");
 			check[maxIndex].dirty = 0;
 			return 2*cp->mem_latency;
 		}
-		else
+		else {
+			if(access_type == 1) printf("miss\n");
 			return cp->mem_latency;
+		}
 	}
 
 	return 0

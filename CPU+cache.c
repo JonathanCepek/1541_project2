@@ -185,6 +185,7 @@ int main(int argc, char **argv)
 			}
 		}	
 	}  
+	int poop = 0;
 	int temp = cycle_number;
 	cycle_number = cycle_number + cache_access(I_cache, tr_entry->PC, 0); /* simulate instruction fetch */
 	// update I_access and I_misses
@@ -210,7 +211,7 @@ int main(int argc, char **argv)
 		  cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 0);
 		  // update D_read_access and D_read_misses
 		  D_read_accesses++;
-		  if(cycle_number > temp) I_misses++;
+		  if(cycle_number > temp) D_read_misses++;
 		  break;
 		case ti_STORE:
 		  printf("[cycle %d] STORE:",cycle_number) ;      
@@ -219,7 +220,7 @@ int main(int argc, char **argv)
 		  cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 1);
 		  // update D_write_access and D_write_misses 
 		  D_write_accesses++;  
-		  if(cycle_number > temp) I_misses++;       
+		  if(cycle_number > temp) D_write_misses++;       
 		  break;
 		case ti_BRANCH:
 		  printf("[cycle %d] BRANCH:",cycle_number) ;
@@ -244,18 +245,20 @@ int main(int argc, char **argv)
 		if(tr_entry->type == ti_LOAD)
 		{
 			temp = cycle_number;
-			cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 0);
+			poop = cache_access(D_cache, tr_entry->Addr, 0);
+			cycle_number = cycle_number + poop;
 			// update D_read_access and D_read_misses
 			D_read_accesses++;
-			if(cycle_number > temp) I_misses++;
+			if(cycle_number > temp) D_read_misses++;
 		}
 		else if (tr_entry->type == ti_STORE)
 		{
 		  temp = cycle_number;
-		  cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 1);
+		  poop = cache_access(D_cache, tr_entry->Addr, 1);
+		  cycle_number = cycle_number + poop;
 		  // update D_write_access and D_write_misses 
 		  D_write_accesses++;  
-		  if(cycle_number > temp) I_misses++;   
+		  if(cycle_number > temp) D_write_misses++;   
 		}
 	}
   }
