@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   
   int trace_view_on = 0, added = 0, no_print = 0;
   int stop = -1,  end = 0, branch_cycle = 0; 
-  unsigned int squashed[3];
+  unsigned int squashed[3] = {0,0,0};
   int branch_predictor = 0;
 
   unsigned int cycle_number = 0;
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	
   trace_file_name = argv[1];
 
-  fprintf(stdout, "\n ** opening file %s\n", trace_file_name);
+  //fprintf(stdout, "\n ** opening file %s\n", trace_file_name);
 
   trace_fd = fopen(trace_file_name, "rb");
 
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
   trace_init();
   
   //read config file
-  fprintf(stdout, "\n ** opening file cache_config.txt\n");
+  //fprintf(stdout, "\n ** opening file cache_config.txt\n");
 
   config_fd = fopen("cache_config.txt", "r");
   
@@ -129,10 +129,16 @@ int main(int argc, char **argv)
 	}
    
 	if (cycle_number >= stop) {       /* no more instructions (trace_items) to simulate */
+		printf("I_size = %d, I_block = %d, I-assoc = %d\n", I_size, I_bsize, I_assoc);
+		printf("D_size = %d, D_block = %d, D-assoc = %d\n", D_size, D_bsize, D_assoc);
 		printf("+ Simulation terminates at cycle : %u\n", cycle_number);
-		printf("I-cache accesses %u and misses %u\n", I_accesses, I_misses);
-		printf("D-cache Read accesses %u and misses %u\n", D_read_accesses, D_read_misses);
-		printf("D-cache Write accesses %u and misses %u\n", D_write_accesses, D_write_misses);
+		float i_rate = (float)I_misses/(float)I_accesses;
+		float d_rate = (float)(D_read_misses + D_write_misses)/(float)(D_read_accesses + D_write_accesses);
+		printf("I-cache miss rate: %.2f\n", i_rate*100);
+		printf("D-cache miss rate: %.2f\n\n", d_rate*100);
+		//printf("I-cache accesses %u and misses %u\n", I_accesses, I_misses);
+		//printf("D-cache Read accesses %u and misses %u\n", D_read_accesses, D_read_misses);
+		//printf("D-cache Write accesses %u and misses %u\n", D_write_accesses, D_write_misses);
 		break;
 	}
 	else{           
@@ -173,8 +179,10 @@ int main(int argc, char **argv)
 				{
 					printf("[cycle %d] BRANCH:",cycle_number) ;
 		      		printf(" (PC: %x)(sReg_a: %d)(sReg_b: %d)(addr: %x)\n", tr_entry->PC, tr_entry->sReg_a, tr_entry->sReg_b, tr_entry->Addr);
-					printf("[cycle %d] SQUASHED\n",++cycle_number);
-					printf("[cycle %d] SQUASHED\n",++cycle_number);
+					cycle_number = cycle_number + 1;
+					printf("[cycle %d] SQUASHED\n",cycle_number);
+					cycle_number = cycle_number + 1;
+					printf("[cycle %d] SQUASHED\n",cycle_number);
 				}
 				else
 				{
@@ -187,10 +195,13 @@ int main(int argc, char **argv)
 	}  
 	int poop = 0;
 	int temp = cycle_number;
-	cycle_number = cycle_number + cache_access(I_cache, tr_entry->PC, 0); /* simulate instruction fetch */
-	// update I_access and I_misses
-	I_accesses++;
-	if(cycle_number > temp) I_misses++;
+	if(cycle_number >= 5)
+	{
+		cycle_number = cycle_number + cache_access(I_cache, tr_entry->PC, 0); /* simulate instruction fetch */
+		// update I_access and I_misses
+		I_accesses++;
+		if(cycle_number > temp) I_misses++;
+	}
 	if (trace_view_on && !no_print && cycle_number >= 5) {/* print the executed instruction if trace_view_on=1 and don't print the first cycle's initial value*/
 	  switch(tr_entry->type) {
 		case ti_NOP:
@@ -245,8 +256,7 @@ int main(int argc, char **argv)
 		if(tr_entry->type == ti_LOAD)
 		{
 			temp = cycle_number;
-			poop = cache_access(D_cache, tr_entry->Addr, 0);
-			cycle_number = cycle_number + poop;
+			cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 0);
 			// update D_read_access and D_read_misses
 			D_read_accesses++;
 			if(cycle_number > temp) D_read_misses++;
@@ -254,8 +264,7 @@ int main(int argc, char **argv)
 		else if (tr_entry->type == ti_STORE)
 		{
 		  temp = cycle_number;
-		  poop = cache_access(D_cache, tr_entry->Addr, 1);
-		  cycle_number = cycle_number + poop;
+		  cycle_number = cycle_number + cache_access(D_cache, tr_entry->Addr, 1);
 		  // update D_write_access and D_write_misses 
 		  D_write_accesses++;  
 		  if(cycle_number > temp) D_write_misses++;   
