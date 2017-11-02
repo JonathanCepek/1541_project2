@@ -1,0 +1,83 @@
+Experiment 1 - Cache and Block Sizes
+
+I_size = 1, I_block = 4, I-assoc = 4
+D_size = 1, D_block = 4, D-assoc = 4
++ Simulation terminates at cycle : 707971579
+I-cache miss rate: 0.59
+D-cache miss rate: 60.91
+
+I_size = 1, I_block = 16, I-assoc = 4
+D_size = 1, D_block = 16, D-assoc = 4
++ Simulation terminates at cycle : 682849399
+I-cache miss rate: 0.17
+D-cache miss rate: 58.15
+
+I_size = 1, I_block = 64, I-assoc = 4
+D_size = 1, D_block = 64, D-assoc = 4
++ Simulation terminates at cycle : 651603898
+I-cache miss rate: 0.05
+D-cache miss rate: 53.85
+
+I_size = 1, I_block = 256, I-assoc = 4
+D_size = 1, D_block = 256, D-assoc = 4
++ Simulation terminates at cycle : 609032198
+I-cache miss rate: 0.02
+D-cache miss rate: 52.05
+
+I_size = 16, I_block = 4, I-assoc = 4
+D_size = 16, D_block = 4, D-assoc = 4
++ Simulation terminates at cycle : 634544459
+I-cache miss rate: 0.00
+D-cache miss rate: 53.44
+
+I_size = 16, I_block = 16, I-assoc = 4
+D_size = 16, D_block = 16, D-assoc = 4
++ Simulation terminates at cycle : 639192219
+I-cache miss rate: 0.00
+D-cache miss rate: 53.77
+
+I_size = 16, I_block = 64, I-assoc = 4
+D_size = 16, D_block = 64, D-assoc = 4
++ Simulation terminates at cycle : 574947219
+I-cache miss rate: 0.00
+D-cache miss rate: 44.98
+
+I_size = 16, I_block = 256, I-assoc = 4
+D_size = 16, D_block = 256, D-assoc = 4
++ Simulation terminates at cycle : 407466599
+I-cache miss rate: 0.00
+D-cache miss rate: 24.24
+
+I_size = 128, I_block = 4, I-assoc = 4
+D_size = 128, D_block = 4, D-assoc = 4
++ Simulation terminates at cycle : 581219699
+I-cache miss rate: 0.00
+D-cache miss rate: 46.59
+
+I_size = 128, I_block = 16, I-assoc = 4
+D_size = 128, D_block = 16, D-assoc = 4
++ Simulation terminates at cycle : 579851819
+I-cache miss rate: 0.00
+D-cache miss rate: 47.20
+
+I_size = 128, I_block = 64, I-assoc = 4
+D_size = 128, D_block = 64, D-assoc = 4
++ Simulation terminates at cycle : 545927579
+I-cache miss rate: 0.00
+D-cache miss rate: 41.87
+
+I_size = 128, I_block = 256, I-assoc = 4
+D_size = 128, D_block = 256, D-assoc = 4
++ Simulation terminates at cycle : 384486179
+I-cache miss rate: 0.00
+D-cache miss rate: 21.85
+
+
+Experiment 3 - Associativity
+
+I_size = 1, I_block = 32, I-assoc = 32
+D_size = 1, D_block = 32, D-assoc = 32
++ Simulation terminates at cycle : 652816239
+I-cache miss rate: 0.09
+D-cache miss rate: 54.90
+
